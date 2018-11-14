@@ -1,5 +1,5 @@
 {
-    "name": "butterycrumpet/router",
+    "name": "butterycrumpet/supersimple-routing",
     "description": "Super simple router using nikic/fast-route",
     "type": "library",
     "require": {
