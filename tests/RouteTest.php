@@ -30,6 +30,6 @@ class RouteTest extends TestCase
         $route = new Route($methods, $path, $controller);
         $this->assertEquals($methods, $route->getMethods());
         $this->assertEquals($path, $route->getPath());
-        $this->assertEquals($controller, $route->getController());
+        $this->assertEquals($controller, $route->getHandler());
     }
 }

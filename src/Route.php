@@ -21,20 +21,20 @@ class Route
     /**
      * @var mixed
      */
-    private $controller;
+    private $handler;
 
 
     /**
      * Route constructor.
      * @param $methods string|string[]
      * @param $path string
-     * @param $controller mixed
+     * @param $handler mixed
      */
-    public function __construct($methods, $path, $controller)
+    public function __construct($methods, $path, $handler)
     {
         $this->path = $path;
         $this->methods = is_array($methods) ? $methods : [$methods];
-        $this->controller = $controller;
+        $this->handler = $handler;
     }
 
     /**
@@ -56,8 +56,8 @@ class Route
     /**
      * @return mixed
      */
-    public function getController()
+    public function getHandler()
     {
-        return $this->controller;
+        return $this->handler;
     }
 }

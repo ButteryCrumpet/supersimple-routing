@@ -9,6 +9,7 @@ namespace SuperSimpleRouting;
 class RouteGroup
 {
     use MiddlewareAwareTrait;
+    use RouteBuilderTrait;
 
     /**
      * @var string
@@ -25,21 +26,9 @@ class RouteGroup
      * @param string $path
      * @param Route[] $routes
      */
-    public function __construct(string $path, array $routes)
+    public function __construct(string $path)
     {
         $this->path = $path;
-        foreach($routes as $key => $route) {
-            if (!($route instanceof Route || $route instanceof RouteGroup)) {
-                throw new \InvalidArgumentException(sprintf(
-                    "Route must be an instance of %s or %s. %s was given at index %s.",
-                    Route::class,
-                    RouteGroup::class,
-                    gettype($route),
-                    $key
-                ));
-            }
-            $this->routes[] = $route;
-        }
     }
 
     /**
@@ -48,13 +37,5 @@ class RouteGroup
     public function getPath()
     {
         return $this->path;
-    }
-
-    /**
-     * @return Route[]
-     */
-    public function getRoutes()
-    {
-        return $this->routes;
     }
 }

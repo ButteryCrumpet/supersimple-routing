@@ -5,20 +5,12 @@ use SuperSimpleRouting\Router;
 
 class RouterTest extends TestCase
 {
-    private $routes;
     private $notFoundAllowed;
 
     public function setUp()
     {
-        $route1 = $this->createRoute("GET", "/", "Cont1", []);
-        $route2 = $this->createRoute("POST", "/create", "Cont2", ["1", "2"]);
-        $route3 = $this->createRoute("GET", "/top", "Cont3", ["1"]);
-
-        $group1 = $this->createGroup("/{id}", [$route3], []);
-        $group2 = $this->createGroup("/posts", [$route2, $group1], ["m1"]);
-
-        $this->routes = [$route1, $group2];
-        $this->notFoundAllowed = $this->createRoute("GET", "path", "controller", []);
+        $this->notFoundAllowed = $this->createMock(\SuperSimpleRouting\Route::class);
+        $this->notFoundAllowed->method("getMiddleware")->willReturn([]);
     }
 
     public function testItInitializes()
@@ -30,7 +22,7 @@ class RouterTest extends TestCase
 
         $this->assertInstanceOf(
             Router::class,
-            new Router($this->routes, $handlerFact, $this->notFoundAllowed, $this->notFoundAllowed)
+            new Router($handlerFact, $this->notFoundAllowed, $this->notFoundAllowed)
         );
     }
 
@@ -44,7 +36,7 @@ class RouterTest extends TestCase
             ->method("make")
             ->willReturn($this->createMock(Psr\Http\Server\RequestHandlerInterface::class));
 
-        $router = new Router($this->routes, $handlerFact, $this->notFoundAllowed, $this->notFoundAllowed);
+        $router = new Router($handlerFact, $this->notFoundAllowed, $this->notFoundAllowed);
         $this->assertInstanceOf(
             \Psr\Http\Server\RequestHandlerInterface::class,
             $router->getHandler("GET", $uri)
@@ -56,24 +48,16 @@ class RouterTest extends TestCase
         $uri = $this->createMock(Psr\Http\Message\UriInterface::class);
         $uri->method("getPath")->willReturn("/posts/5/top");
         $handlerFact = $this->createHandlerFactory("Cont3", [ "id" => "5"], ["1", "m1", "r1"]);
-        $router = new Router($this->routes, $handlerFact, $this->notFoundAllowed, $this->notFoundAllowed);
+        $router = new Router($handlerFact, $this->notFoundAllowed, $this->notFoundAllowed);
+        $router->get("/", 'Cont1');
+        $router->group("/posts", function($group) {
+            $group->post("/create", "Cont2")->with(["1", "2"]);
+            $group->group("/{id}", function($group) {
+               $group->get("/top", "Cont3")->with("1");
+            });
+        })->with(["m1"]);
         $router->with("r1");
         $router->getHandler("GET", $uri);
-
-    }
-
-    private function createRoute($methods, $path, $controller, array $middleware)
-    {
-        $route = new \SuperSimpleRouting\Route($methods, $path, $controller);
-        $route->with($middleware);
-        return $route;
-    }
-
-    private function createGroup($path, array $routes, array $middleware)
-    {
-        $group = new \SuperSimpleRouting\RouteGroup($path, $routes);
-        $group->with($middleware);
-        return $group;
     }
 
     private function createHandlerFactory($controller, $args, $middleware)

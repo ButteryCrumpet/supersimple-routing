@@ -11,15 +11,12 @@ use Psr\Http\Server\RequestHandlerInterface;
 class Router
 {
     use MiddlewareAwareTrait;
+    use RouteBuilderTrait;
 
     /**
      * @var HandlerFactoryInterface
      */
     private $handlerFactory;
-    /**
-     * @var Route[]
-     */
-    private $routes;
     /**
      * @var Route
      */
@@ -31,18 +28,15 @@ class Router
 
     /**
      * Router constructor.
-     * @param Route[]|RouteGroup[] $routes
      * @param HandlerFactoryInterface $handlerFactory
      * @param Route $notFound
      * @param Route $notAllowed
      */
     public function __construct(
-        array $routes,
         HandlerFactoryInterface $handlerFactory,
         Route $notFound,
         Route $notAllowed
     ) {
-        $this->routes = $routes;
         $this->handlerFactory = $handlerFactory;
         $this->notFound = $notFound;
         $this->notAllowed = $notAllowed;
@@ -62,24 +56,25 @@ class Router
         $dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
             $this->setUp($r);
         });
+
         $routeInfo = $dispatcher->dispatch($method, $path);
         switch ($routeInfo[0]) {
             case Dispatcher::METHOD_NOT_ALLOWED:
                 return $this->handlerFactory->make(
-                    $this->notAllowed->getController(),
+                    $this->notAllowed->getHandler(),
                     $routeInfo[2] ?? [],
                     $this->notAllowed->getMiddleware()
                 );
             case Dispatcher::FOUND:
                 $route = $routeInfo[1];
                 return $this->handlerFactory->make(
-                    $route->getController(),
+                    $route->getHandler(),
                     $routeInfo[2] ?? [],
                     $route->getMiddleware()
                 );
             default:
                 return $this->handlerFactory->make(
-                    $this->notFound->getController(),
+                    $this->notFound->getHandler(),
                     $routeInfo[2] ?? [],
                     $this->notFound->getMiddleware()
                 );

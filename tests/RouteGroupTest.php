@@ -15,21 +15,14 @@ class RouteGroupTest extends TestCase
         $this->assertInstanceOf(RouteGroup::class, $group);
     }
 
-    public function testItThrowsWhenNonRouteIsPassed()
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        new RouteGroup("/some/path", ["hi"]);
-    }
-
     public function testItReturnsCorrectValues()
     {
-        $route1 = $this->createMock(SuperSimpleRouting\Route::class);
-        $route2 = $this->createMock(SuperSimpleRouting\Route::class);
-        $routes = [$route1,$route2];
         $path = "/some/path";
+        $group = new RouteGroup($path);
 
-        $group = new RouteGroup($path, $routes);
+        $group->get("/next", "handler");
         $this->assertEquals($path, $group->getPath());
-        $this->assertEquals($routes, $group->getRoutes());
+        $this->assertEquals("/next", $group->getRoutes()[0]->getPath());
+        $this->assertEquals("handler", $group->getRoutes()[0]->getHandler());
     }
 }
