@@ -60,6 +60,7 @@ class Router
         $routeInfo = $dispatcher->dispatch($method, $path);
         switch ($routeInfo[0]) {
             case Dispatcher::METHOD_NOT_ALLOWED:
+                $this->notAllowed->with($this->getMiddleware());
                 return $this->handlerFactory->make(
                     $this->notAllowed->getHandler(),
                     $routeInfo[2] ?? [],
@@ -73,6 +74,7 @@ class Router
                     $route->getMiddleware()
                 );
             default:
+                $this->notFound->with($this->getMiddleware());
                 return $this->handlerFactory->make(
                     $this->notFound->getHandler(),
                     $routeInfo[2] ?? [],
